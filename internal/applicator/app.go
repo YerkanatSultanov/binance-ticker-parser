@@ -17,6 +17,7 @@ import (
 
 func Run() error {
 	logger := logging.GetLogger()
+	//
 
 	cfg, err := config.LoadConfig("config/config.yaml")
 	if err != nil {
