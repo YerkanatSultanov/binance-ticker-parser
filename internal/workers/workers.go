@@ -11,7 +11,7 @@ import (
 
 type Worker struct {
 	Symbols        []string
-	RequestCount   int
+	RequestCount   int // неплохо бы сделать это поле неимпортируемым
 	previousPrices map[string]string
 	mu             sync.Mutex
 	ctx            context.Context
@@ -19,7 +19,7 @@ type Worker struct {
 }
 
 func NewWorker(symbols []string) *Worker {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background()) // почему бы не хранить общий контекст где-то выше, чем у каждого воркера свой. Если ты потом снова запустишь Run у тебя уже контекст будет отменен, потому что ты его создал один раз в конструкторе
 	return &Worker{
 		Symbols:        symbols,
 		previousPrices: make(map[string]string),
@@ -34,7 +34,7 @@ func (w *Worker) Run() {
 		case <-w.ctx.Done():
 			return
 		default:
-			for _, symbol := range w.Symbols {
+			for _, symbol := range w.Symbols { // лучше селект засунуть в это цикл - иначе будешь ждать пока по всем символам пройдешь, прежде чем выйти по контексту
 				price, err := binance.GetPrice(symbol)
 				if err != nil {
 					log.Printf("Error fetching price for %s: %v", symbol, err)
@@ -48,7 +48,7 @@ func (w *Worker) Run() {
 				}
 				w.previousPrices[symbol] = price
 				w.mu.Unlock()
-				fmt.Printf("%s price:%s %s\n", symbol, price, changed)
+				fmt.Printf("%s price:%s %s\n", symbol, price, changed) // тут нельзя это писать, в задаче сказано
 			}
 			time.Sleep(1 * time.Second)
 		}
@@ -71,7 +71,7 @@ type WorkerManager struct {
 
 func NewWorkerManager(maxWorkers int, symbols []string) *WorkerManager {
 	workers := make([]*Worker, maxWorkers)
-	symbolsPerWorker := len(symbols) / maxWorkers
+	symbolsPerWorker := len(symbols) / maxWorkers // словишь панику если maxWorkers=0
 
 	for i := 0; i < maxWorkers; i++ {
 		start := i * symbolsPerWorker
@@ -79,7 +79,7 @@ func NewWorkerManager(maxWorkers int, symbols []string) *WorkerManager {
 		if i == maxWorkers-1 {
 			end = len(symbols)
 		}
-		workers[i] = NewWorker(symbols[start:end])
+		workers[i] = NewWorker(symbols[start:end]) // неравномерно распределишь символы, если будет 11 символов и 7 воркеров
 	}
 
 	return &WorkerManager{Workers: workers}

@@ -14,7 +14,7 @@ type Price struct {
 }
 
 func GetPrice(symbol string) (string, error) {
-	resp, err := http.Get(baseURL + symbol)
+	resp, err := http.Get(baseURL + symbol) // дефолтный клиент не имеет таймаута и может зависнуть навсегда
 	if err != nil {
 		return "", err
 	}

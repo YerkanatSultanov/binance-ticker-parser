@@ -33,7 +33,7 @@ func Run() error {
 	var wg sync.WaitGroup
 	workerManager := workers.NewWorkerManager(maxWorkers, cfg.Symbols)
 
-	for i := 0; i < maxWorkers; i++ {
+	for i := 0; i < maxWorkers; i++ { // лучше смотреть на длину workerManager.Workers  - всегда можно протупить и в итоге словить панику когда обратишься по индексу, которго нет
 		wg.Add(1)
 		go func(worker *workers.Worker) {
 			defer wg.Done()
@@ -50,7 +50,7 @@ func Run() error {
 	}()
 
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) // YAGNY
 
 	reader := bufio.NewReader(os.Stdin)
 	go func() {
